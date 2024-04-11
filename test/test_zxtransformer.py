@@ -26,7 +26,8 @@ from zxtransformer import ZXTransformer
 def _run_zxtransformer(qc: cirq.Circuit, optimize: Optional[Callable[[zx.Circuit], zx.Circuit]] = None) -> None:
     zx_transform = ZXTransformer(optimize)
     zx_qc = zx_transform(qc)
-    cirq.testing.assert_same_circuits(qc, zx_qc)
+    qubit_map = {qid: qid for qid in qc.all_qubits()}
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(qc, zx_qc, qubit_map)
 
 
 def test_basic_circuit() -> None:
@@ -54,3 +55,55 @@ def test_basic_circuit() -> None:
     )
 
     _run_zxtransformer(circuit)
+
+
+def test_custom_optimize() -> None:
+    """Test custom optimize method.
+    """
+    q = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit(
+        cirq.H(q[0]),
+        cirq.H(q[1]),
+        cirq.H(q[2]),
+        cirq.H(q[3]),
+        cirq.CX(q[0], q[1]),
+        cirq.CX(q[1], q[2]),
+        cirq.CX(q[2], q[3]),
+        cirq.CX(q[3], q[0]),
+    )
+
+    def optimize(circ: zx.Circuit) -> zx.Circuit:
+        # Any function that takes a zx.Circuit and returns a zx.Circuit will do.
+        return circ.to_basic_gates()
+
+    _run_zxtransformer(circuit, optimize)
+
+
+def test_measurement() -> None:
+    """Test a circuit with a measurement.
+    """
+    q = cirq.NamedQubit("q")
+    circuit = cirq.Circuit(
+        cirq.H(q),
+        cirq.measure(q, key='c'),
+        cirq.H(q),
+    )
+    zxtransformer = ZXTransformer()
+    circuits_and_ops = zxtransformer._cirq_to_circuits_and_ops(circuit)  # pylint: disable=protected-access
+    assert len(circuits_and_ops) == 3
+    assert circuits_and_ops[1] == cirq.measure(q, key='c')
+
+
+def test_conditional_gate() -> None:
+    """Test a circuit with a conditional gate.
+    """
+    q = cirq.NamedQubit("q")
+    circuit = cirq.Circuit(
+        cirq.X(q),
+        cirq.H(q).with_classical_controls('c'),
+        cirq.X(q),
+    )
+
+    zxtransformer = ZXTransformer()
+    circuits_and_ops = zxtransformer._cirq_to_circuits_and_ops(circuit)  # pylint: disable=protected-access
+    assert len(circuits_and_ops) == 3
