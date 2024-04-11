@@ -13,4 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""A custom transformer for Cirq which uses ZX-Calculus for circuit optimization, implemented using PyZX."""
+
 from .zxtransformer import ZXTransformer, full_reduce

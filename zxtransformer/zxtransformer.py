@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
-from cirq import circuits
-import pyzx as zx
+"""A custom transformer for Cirq which uses ZX-Calculus for circuit optimization, implemented using PyZX."""
 
 from typing import Optional, Callable
+
+import cirq
+from cirq import circuits
+
+import pyzx as zx
 
 
 def _optimize(c: zx.Circuit) -> zx.Circuit:
@@ -27,7 +30,7 @@ def _optimize(c: zx.Circuit) -> zx.Circuit:
 
 
 @cirq.transformer
-class ZXTransformer:
+class ZXTransformer:  # pylint: disable=too-few-public-methods
     """Transformer to do processing on an input circuit with pyzx."""
 
     def __init__(self, optimize: Optional[Callable[[zx.Circuit], zx.Circuit]] = None):
@@ -61,5 +64,6 @@ class ZXTransformer:
 @cirq.transformer
 def full_reduce(circuit: circuits.AbstractCircuit, context: Optional[cirq.TransformerContext] = None) ->\
         circuits.Circuit:
+    """Run the main simplification routine of PyZX on the circuit."""
     full_reduce_transform = ZXTransformer()
     return full_reduce_transform(circuit, context)
