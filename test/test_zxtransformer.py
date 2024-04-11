@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
-from zxtransformer import ZXTransformer
-import pyzx as zx
+"""Tests for Cirq ZX transformer."""
 
 from typing import Optional, Callable
+
+import cirq
+import pyzx as zx
+
+from zxtransformer import ZXTransformer
 
 
 def _run_zxtransformer(qc: cirq.Circuit, optimize: Optional[Callable[[zx.Circuit], zx.Circuit]] = None) -> None:
