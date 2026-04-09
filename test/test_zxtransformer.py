@@ -15,6 +15,7 @@
 
 """Tests for Cirq ZX transformer."""
 
+import math
 from typing import Optional, Callable
 
 import cirq
@@ -92,6 +93,22 @@ def test_measurement() -> None:
     circuits_and_ops = zxtransformer._cirq_to_circuits_and_ops(circuit)  # pylint: disable=protected-access
     assert len(circuits_and_ops) == 3
     assert circuits_and_ops[1] == cirq.measure(q, key='c')
+
+
+def test_rotation_gates() -> None:
+    """Test rotation gates with non-integer exponents."""
+    q = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.XPowGate(exponent=0.5)(q[0]),
+        cirq.YPowGate(exponent=0.25)(q[1]),
+        cirq.ZPowGate(exponent=0.5)(q[0]),
+        cirq.Rx(rads=math.pi / 4)(q[1]),
+        cirq.Ry(rads=math.pi / 2)(q[0]),
+        cirq.Rz(rads=math.pi / 4)(q[1]),
+        cirq.CX(q[0], q[1]),
+    )
+
+    _run_zxtransformer(circuit)
 
 
 def test_conditional_gate() -> None:

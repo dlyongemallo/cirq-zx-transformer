@@ -16,6 +16,7 @@
 """A custom transformer for Cirq which uses ZX-Calculus for circuit optimization, implemented using PyZX."""
 
 from typing import Dict, List, Callable, Optional, Union
+from fractions import Fraction
 
 import cirq
 from cirq import circuits
@@ -26,15 +27,15 @@ from pyzx.circuit import gates as zx_gates
 
 def cirq_gate_to_zx_gate(cirq_gate: Optional[cirq.Gate], qubits: List[int]) -> Optional[zx_gates.Gate]:
     """Convert a Cirq gate to a PyZX gate."""
-    if cirq.Gate is None:
+    if cirq_gate is None:
         return None
 
     if isinstance(cirq_gate, (cirq.Rx, cirq.XPowGate)):
-        return zx_gates.XPhase(*qubits, phase=cirq_gate.exponent)  # type: ignore
+        return zx_gates.XPhase(*qubits, phase=Fraction(cirq_gate.exponent))  # type: ignore
     if isinstance(cirq_gate, (cirq.Ry, cirq.YPowGate)):
-        return zx_gates.YPhase(*qubits, phase=cirq_gate.exponent)  # type: ignore
+        return zx_gates.YPhase(*qubits, phase=Fraction(cirq_gate.exponent))  # type: ignore
     if isinstance(cirq_gate, (cirq.Rz, cirq.ZPowGate)):
-        return zx_gates.ZPhase(*qubits, phase=cirq_gate.exponent)  # type: ignore
+        return zx_gates.ZPhase(*qubits, phase=Fraction(cirq_gate.exponent))  # type: ignore
 
     # TODO: Deal with exponents other than nice ones.
     if isinstance(cirq_gate, cirq.HPowGate):
